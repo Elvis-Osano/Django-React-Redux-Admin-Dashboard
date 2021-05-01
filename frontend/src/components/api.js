@@ -10,7 +10,7 @@ const Api = () => {
     let name = [];
     let sale = [];
     axios
-      .get("http://localhost:8000")
+      .get("http://localhost:8000/branch/")
       .then((res) => {
         data = res.data;
         data.forEach((item) => {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import clsx from "clsx";
 import { makeStyles, useTheme } from "@material-ui/core/styles";
 import Drawer from "@material-ui/core/Drawer";
@@ -12,17 +12,33 @@ import ListItemText from "@material-ui/core/ListItemText";
 import InboxIcon from "@material-ui/icons/MoveToInbox";
 import MailIcon from "@material-ui/icons/Mail";
 import { useHistory, useLocation } from "react-router";
-import { AppBar, Avatar, Toolbar, Typography } from "@material-ui/core";
+import { Typography } from "@material-ui/core";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import CreateIcon from "@material-ui/icons/Create";
 import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
-import NotificationsIcon from "@material-ui/icons/Notifications";
-export default function MiniDrawer({ children }) {
+import { connect } from "react-redux";
+import { checkAuthentication, load_user } from "../auth/actions/auth";
+import PrimarySearchAppBar from "../components/appbar";
+
+const MiniDrawer = (props) => {
+  let location = useLocation();
+  useEffect(() => {
+    if (location.pathname === "/login") {
+      setOpen(false);
+    } else if (location.pathname === "/signup") {
+      setOpen(false);
+    } else {
+      setOpen(true);
+    }
+
+    props.checkAuthentication();
+    props.load_user();
+  }, [location]);
   const classes = useStyles();
   const theme = useTheme();
   const [open, setOpen] = React.useState(true);
   const history = useHistory();
-  const location = useLocation();
+
   const menuItems = [
     {
       text: "DashBoard",
@@ -48,22 +64,8 @@ export default function MiniDrawer({ children }) {
 
   return (
     <div className={classes.root}>
-      <AppBar className={classes.appBar} elevation={0}>
-        <Toolbar>
-          <Typography
-            component={"span"}
-            variant={"body2"}
-            className={classes.flex}
-          >
-            Adminstrator
-          </Typography>
+      <PrimarySearchAppBar></PrimarySearchAppBar>
 
-          <div className={"row"}>
-            <NotificationsIcon color="secondary" />
-            <Avatar className={classes.small} src="/static/girl.jpg" />
-          </div>
-        </Toolbar>
-      </AppBar>
       <Drawer
         variant="permanent"
         className={clsx({
@@ -133,11 +135,11 @@ export default function MiniDrawer({ children }) {
           }))
         }
       >
-        {children}
+        {props.children}
       </div>
     </div>
   );
-}
+};
 
 const drawerWidth = 200;
 
@@ -232,14 +234,4 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: "9px",
   },
 }));
-// {/* <IconButton
-//         color="primary"
-//         aria-label="open drawer"
-//         onClick={handleDrawerOpen}
-//         edge="start"
-//         className={clsx(classes.menuButton, {
-//           [classes.hide]: open,
-//         })}
-//       >
-//         <MenuIcon />
-//       </IconButton> */}
+export default connect(null, { checkAuthentication, load_user })(MiniDrawer);

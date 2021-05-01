@@ -6,41 +6,45 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import FormControl from "@material-ui/core/FormControl";
 import { makeStyles } from "@material-ui/core/styles";
 import { Button, Container } from "@material-ui/core";
-import { useHistory } from "react-router-dom";
+import { createData } from "../auth/actions/auth";
+import { connect } from "react-redux";
+import { Redirect } from "react-router";
 
-const Create = () => {
+const Create = ({ createData }) => {
   const classes = useStyles();
-  const [name, setName] = useState("");
-  const [sale, setSales] = useState("");
-  let history = useHistory();
+  const [created, setCreated] = useState(false);
+
+  const [branchsales, setBranchSales] = useState({
+    name: "",
+    sale: "",
+  });
+  const { name, sale } = branchsales;
+  const onChange = (e) =>
+    setBranchSales({ ...branchsales, [e.target.name]: e.target.value });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (name) {
-      fetch("http://localhost:8000", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, sale }),
-      })
-        .then((res) => {
-          console.log(res);
 
-          history.push("/");
-        })
-        .catch((err) => console.log(err));
-    }
+    createData(name, sale);
+    setCreated(true);
   };
+  if (created) {
+    return <Redirect to="/" />;
+  }
 
   return (
     <div>
       <Container spacing={3}>
         <form noValidate autoComplete="off" onSubmit={handleSubmit}>
           <TextField
-            id="filled-basic"
+            id="filled-secondary"
+            name="name"
             label="Branch"
             variant="filled"
+            value={name}
             className={classes.margin}
             onChange={(e) => {
-              setName(e.target.value);
+              onChange(e);
             }}
           />
           <br />
@@ -48,13 +52,14 @@ const Create = () => {
             <InputLabel htmlFor="outlined-adornment-amount">Sale</InputLabel>
             <OutlinedInput
               id="outlined-adornment-amount"
-              value={70000}
+              name="sale"
+              value={sale}
               startAdornment={
                 <InputAdornment position="start">$</InputAdornment>
               }
               labelWidth={60}
               onChange={(e) => {
-                setSales(e.target.value);
+                onChange(e);
               }}
             />
           </FormControl>
@@ -72,7 +77,7 @@ const Create = () => {
     </div>
   );
 };
-export default Create;
+export default connect(null, { createData })(Create);
 const useStyles = makeStyles((theme) => ({
   root: {
     display: "flex",

@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
-
+import os
+from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
@@ -41,11 +42,44 @@ INSTALLED_APPS = [
     "backend",
     "rest_framework",
     'corsheaders',
+    "rest_framework.authtoken",
     "djoser",
-    "accounts"
+    "accounts",
+    'social_django',
+    "rest_framework_simplejwt",
+    'rest_framework_simplejwt.token_blacklist',
 ]
+REST_FRAMEWORK = {
+    # "DEFAULT_PERMISSION_CLASSES":{
+    #     "rest_framework.permissions.IsAuthenticated",
+    # },
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        
+    ),
+    
+}
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.open_id.OpenIdAuth',
+    'social_core.backends.google.GoogleOpenId',
+    'social_core.backends.google.GoogleOAuth2',
+    'social_core.backends.facebook.FacebookOAuth2',
+    'social_core.backends.google.GoogleOAuth',
+    'social_core.backends.twitter.TwitterOAuth',
+    'social_core.backends.yahoo.YahooOpenId',
+    'django.contrib.auth.backends.ModelBackend',
+)
+SIMPLE_JWT = {
+   'AUTH_HEADER_TYPES': ('JWT',),
+   'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_TOKEN_CLASSES':(
+        'rest_framework_simplejwt.tokens.AccessToken',
+    )
+} 
 CORS_ORIGIN_ALLOW_ALL = True
 MIDDLEWARE = [
+    'social_django.middleware.SocialAuthExceptionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',    
@@ -57,11 +91,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'kenpoly.urls'
+#
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR,"build")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -69,6 +104,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
+
             ],
         },
     },
@@ -105,7 +143,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -123,5 +163,48 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
+# CSRF_COOKIE_SECURE = False
+# CSRF_COOKIE_HTTPONLY = False
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS=[os.path.join(BASE_DIR,"build/static")]
+STATIC_ROOT=os.path.join(BASE_DIR,"static")
+AUTH_USER_MODEL="accounts.UserAccount"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_PORT=587
+EMAIL_HOST_USER="tonypublic254@gmail.com"
+EMAIL_HOST_PASSWORD="agjxwkxsgdamdolj"
+EMAIL_USE_TLS=True
+DJOSER={
+    
+    "LOGIN_FIELD":"email",
+    "USER_CREATE_PASSWORD__RETYPE":True,
+    "USERNAME_CHANGED_EMAIL_CONFIRMATION":True,
+    "PASSWORD_CHANGED_EMAIL_CONFIRMATION":True,
+    "SEND_CONFIRMATION_EMAIL":True,
+    "SET_PASSWORD_RETYPE":True,
+    "SET_USERNAME_RETYPE":True,
+    "PASSWORD_RESET_CONFIRM_URL":"password/reset/confirm/{uid}/{token}",
+    "USERNAME_RESET_CONFIRM_URL":"email/reset/confirm/{uid}/{token}",
+    "ACTIVATION_URL":"activate/{uid}/{token}",
+    "SEND_ACTIVATION_EMAIL":True,
+    'SOCIAL_AUTH_TOKEN_STRATEGY':'djoser.social.token.jwt.TokenStrategy',
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS':["http://localhost:8000/google","http://localhost:8000/facebook"],
+    "SERIALIZERS":{
+        "user_create":"accounts.serializers.UserCreateSerializer",
+        "user":"accounts.serializers.UserCreateSerializer",
+        "user_delete":"djoser.serializers.UserDeleteSerializer",
+        "current_user":"accounts.serializers.UserCreateSerializer",
+    },
+}
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY="594541110674-r3tun37gmo5slel84dsit65dnm5o59nt.apps.googleusercontent.com"
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET="yALeOG6rKXM2zaeWieWIT-V-"
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE=["openid", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"]
+SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA=['first_name',"last_name"]
+
+SOCIAL_AUTH_FACEBOOK_KEY="828434967766191"
+SOCIAL_AUTH_FACEBOOK_SECRET="0b643104999446f1b997b0354a2fbed7"
+SOCIAL_AUTH_FACEBOOK_SCOPE=['email']
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS=['email','first_name',"last_name"]
